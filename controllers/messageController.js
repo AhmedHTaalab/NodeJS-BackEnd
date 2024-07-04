@@ -38,6 +38,28 @@ const sendMessage = async (req, res) => {
     }
 };
 
+// const getConversation = async (req, res) => {
+//     const { sender_id, receiver_id } = req.params;
+
+//     try {
+//         // Verify if both sender and receiver are in the same track
+//         const sender = await studentModel.findUserByNationalID(sender_id) || await mentorModel.findUserByNationalID(sender_id);
+//         const receiver = await studentModel.findUserByNationalID(receiver_id) || await mentorModel.findUserByNationalID(receiver_id);
+
+//         if (!sender || !receiver) {
+//             console.error('Sender or receiver not found');
+//             return res.status(400).json({ error: 'Sender or receiver not found' });
+//         }
+
+//         const messages = await messageModel.getMessages(sender_id, receiver_id, sender.AreaOfInterest);
+
+//         res.status(200).json(messages);
+//     } catch (error) {
+//         console.error('Failed to retrieve conversation:', error);
+//         res.status(500).json({ error: 'Failed to retrieve conversation' });
+//     }
+// };
+
 const getConversation = async (req, res) => {
     const { sender_id, receiver_id } = req.params;
 
@@ -59,6 +81,8 @@ const getConversation = async (req, res) => {
         res.status(500).json({ error: 'Failed to retrieve conversation' });
     }
 };
+
+
 
 module.exports = {
     sendMessage,

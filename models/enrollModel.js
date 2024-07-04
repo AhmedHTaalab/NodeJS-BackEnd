@@ -19,7 +19,7 @@ const rateMentor = async ({ Student_ID, Mentor_ID, Ratings }) => {
 
 const getStudentsByMentorID = async (Mentor_ID) => {
     const [rows] = await db.query(
-        `SELECT  u.first_name, u.last_name, u.Email, s.Skills, s.Level, s.University, s.Faculity, s.Country, s.City 
+        `SELECT  u.first_name, u.last_name, u.Email, s.Skills, s.Level, s.University, s.Faculty, s.Country, s.City 
          FROM Student s
          JOIN Enroll e ON s.National_ID = e.Student_ID
          JOIN AppUser u ON s.National_ID = u.National_ID
