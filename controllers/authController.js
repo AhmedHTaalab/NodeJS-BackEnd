@@ -116,6 +116,7 @@ exports.login = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
         const isMatch = await bcrypt.compare(Password, user.Password);
+
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
@@ -131,6 +132,32 @@ exports.login = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+
+// exports.login = async (req, res) => {
+//     const { Email, Password } = req.body;
+//     try {
+//         const user = await userModel.findUserByEmail(Email);
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         // Directly compare plaintext passwords
+//         if (Password !== user.Password) {
+//             return res.status(400).json({ message: 'Invalid credentials' });
+//         }
+
+//         const role = await userModel.findRoleByNationalID(user.National_ID);
+//         if (!role) {
+//             return res.status(404).json({ message: 'Role not found' });
+//         }
+
+//         const token = jwt.sign({ National_ID: user.National_ID, role: role }, 'your_jwt_secret', { expiresIn: '1h' });
+//         res.status(200).json({ message: 'Login successful', token, National_ID: user.National_ID, role: role });
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// }
 
 exports.updateProfile = async (req, res) => {
     const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, role, ...additionalData } = req.body;
@@ -303,8 +330,8 @@ exports.registerMentor = async (req, res) => {
             National_ID,
             DoB,
             Email,
-             // Password: hashedPassword,
-             Password,
+            Password: hashedPassword,
+            //  Password,
             PhoneNumber,
             Gender,
             first_name,
@@ -330,6 +357,9 @@ exports.registerMentor = async (req, res) => {
     }
 };
 
+
+
+
 exports.registerRecruiter = async (req, res) => {
     const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, Company_Name, JobTitle } = req.body;
     try {
@@ -338,8 +368,8 @@ exports.registerRecruiter = async (req, res) => {
             National_ID,
             DoB,
             Email,
-             // Password: hashedPassword,
-             Password,
+             Password: hashedPassword,
+            //  Password,
             PhoneNumber,
             Gender,
             first_name,
@@ -373,8 +403,8 @@ exports.registerStudent = async (req, res) => {
             National_ID,
             DoB,
             Email,
-            // Password: hashedPassword,
-            Password,
+            Password: hashedPassword,
+            // Password,
             PhoneNumber,
             Gender,
             first_name,
@@ -405,6 +435,46 @@ exports.registerStudent = async (req, res) => {
 };
 
 
+// exports.updateStudentProfile = async (req, res) => {
+//     const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, ...additionalData } = req.body;
+//     try {
+//         const user = await userModel.findUserByNationalID(National_ID);
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+        
+//         // Merge current user data with the new data
+//         const updatedUser = {
+//             National_ID: National_ID || user.National_ID,
+//             DoB: DoB || user.DoB,
+//             Email: Email || user.Email,
+//             // Password: Password ? await bcrypt.hash(Password, 10) : user.Password,
+//             Password: Password || user.Password,
+//             PhoneNumber: PhoneNumber || user.PhoneNumber,
+//             Gender: Gender || user.Gender,
+//             first_name: first_name || user.first_name,
+//             last_name: last_name || user.last_name,
+//             ...additionalData
+//         };
+
+//         const result = await userModel.updateUserProfile(updatedUser);
+
+//         if (additionalData) {
+//             const student = { National_ID, ...additionalData };
+//             await studentModel.updateStudent(student);
+//         }
+
+//         if (result) {
+//             res.status(200).json({ message: 'Student profile updated successfully' });
+//         } else {
+//             res.status(400).json({ message: 'Failed to update student profile' });
+//         }
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// };
+
+
 exports.updateStudentProfile = async (req, res) => {
     const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, ...additionalData } = req.body;
     try {
@@ -412,13 +482,18 @@ exports.updateStudentProfile = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        
+
+        // Encrypt the password if it is being changed
+        const newPassword = Password && Password !== user.Password
+            ? await bcrypt.hash(Password, 10)
+            : user.Password;
+
         // Merge current user data with the new data
         const updatedUser = {
             National_ID: National_ID || user.National_ID,
             DoB: DoB || user.DoB,
             Email: Email || user.Email,
-            Password: Password ? await bcrypt.hash(Password, 10) : user.Password,
+            Password: newPassword,
             PhoneNumber: PhoneNumber || user.PhoneNumber,
             Gender: Gender || user.Gender,
             first_name: first_name || user.first_name,
@@ -428,7 +503,7 @@ exports.updateStudentProfile = async (req, res) => {
 
         const result = await userModel.updateUserProfile(updatedUser);
 
-        if (additionalData) {
+        if (Object.keys(additionalData).length > 0) {
             const student = { National_ID, ...additionalData };
             await studentModel.updateStudent(student);
         }
@@ -444,6 +519,40 @@ exports.updateStudentProfile = async (req, res) => {
 };
 
 
+// exports.updateMentorProfile = async (req, res) => {
+//     const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, ...additionalData } = req.body;
+//     try {
+//         const user = await userModel.findUserByNationalID(National_ID);
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+//         const hashedPassword = Password ? await bcrypt.hash(Password, 10) : user.Password;
+//         const updatedUser = {
+//             National_ID,
+//             DoB: DoB || user.DoB,
+//             Email: Email || user.Email,
+//             // Password: Password ? await bcrypt.hash(Password, 10) : user.Password,
+//             Password: Password || user.Password,
+//             PhoneNumber: PhoneNumber || user.PhoneNumber,
+//             Gender: Gender || user.Gender,
+//             first_name: first_name || user.first_name,
+//             last_name: last_name || user.last_name
+//         };
+//         const result = await userModel.updateUserProfile(updatedUser);
+
+//         const mentor = { National_ID, ...additionalData };
+//         await mentorModel.updateMentor(mentor);
+
+//         if (result) {
+//             res.status(200).json({ message: 'Mentor profile updated successfully' });
+//         } else {
+//             res.status(400).json({ message: 'Failed to update mentor profile' });
+//         }
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// };
+
 exports.updateMentorProfile = async (req, res) => {
     const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, ...additionalData } = req.body;
     try {
@@ -451,21 +560,30 @@ exports.updateMentorProfile = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        const hashedPassword = Password ? await bcrypt.hash(Password, 10) : user.Password;
+
+        // Encrypt the password if it is being changed
+        const newPassword = Password && Password !== user.Password
+            ? await bcrypt.hash(Password, 10)
+            : user.Password;
+
+        // Merge current user data with the new data
         const updatedUser = {
-            National_ID,
+            National_ID: National_ID || user.National_ID,
             DoB: DoB || user.DoB,
             Email: Email || user.Email,
-            Password: hashedPassword,
+            Password: newPassword,
             PhoneNumber: PhoneNumber || user.PhoneNumber,
             Gender: Gender || user.Gender,
             first_name: first_name || user.first_name,
             last_name: last_name || user.last_name
         };
+
         const result = await userModel.updateUserProfile(updatedUser);
 
-        const mentor = { National_ID, ...additionalData };
-        await mentorModel.updateMentor(mentor);
+        if (Object.keys(additionalData).length > 0) {
+            const mentor = { National_ID, ...additionalData };
+            await mentorModel.updateMentor(mentor);
+        }
 
         if (result) {
             res.status(200).json({ message: 'Mentor profile updated successfully' });
@@ -477,6 +595,42 @@ exports.updateMentorProfile = async (req, res) => {
     }
 };
 
+
+// exports.updateRecruiterProfile = async (req, res) => {
+//     const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, ...additionalData } = req.body;
+//     try {
+//         const user = await userModel.findUserByNationalID(National_ID);
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+//         const hashedPassword = Password ? await bcrypt.hash(Password, 10) : user.Password;
+//         const updatedUser = {
+//             National_ID,
+//             DoB: DoB || user.DoB,
+//             Email: Email || user.Email,
+//             // Password: Password ? await bcrypt.hash(Password, 10) : user.Password,
+//             Password: Password || user.Password,
+//             PhoneNumber: PhoneNumber || user.PhoneNumber,
+//             Gender: Gender || user.Gender,
+//             first_name: first_name || user.first_name,
+//             last_name: last_name || user.last_name
+//         };
+//         const result = await userModel.updateUserProfile(updatedUser);
+
+//         const recruiter = { National_ID, ...additionalData };
+//         await recruiterModel.updateRecruiter(recruiter);
+
+//         if (result) {
+//             res.status(200).json({ message: 'Recruiter profile updated successfully' });
+//         } else {
+//             res.status(400).json({ message: 'Failed to update recruiter profile' });
+//         }
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// };
+
+
 exports.updateRecruiterProfile = async (req, res) => {
     const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, ...additionalData } = req.body;
     try {
@@ -484,21 +638,30 @@ exports.updateRecruiterProfile = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
-        const hashedPassword = Password ? await bcrypt.hash(Password, 10) : user.Password;
+
+        // Encrypt the password if it is being changed
+        const newPassword = Password && Password !== user.Password
+            ? await bcrypt.hash(Password, 10)
+            : user.Password;
+
+        // Merge current user data with the new data
         const updatedUser = {
-            National_ID,
+            National_ID: National_ID || user.National_ID,
             DoB: DoB || user.DoB,
             Email: Email || user.Email,
-            Password: hashedPassword,
+            Password: newPassword,
             PhoneNumber: PhoneNumber || user.PhoneNumber,
             Gender: Gender || user.Gender,
             first_name: first_name || user.first_name,
             last_name: last_name || user.last_name
         };
+
         const result = await userModel.updateUserProfile(updatedUser);
 
-        const recruiter = { National_ID, ...additionalData };
-        await recruiterModel.updateRecruiter(recruiter);
+        if (Object.keys(additionalData).length > 0) {
+            const recruiter = { National_ID, ...additionalData };
+            await recruiterModel.updateRecruiter(recruiter);
+        }
 
         if (result) {
             res.status(200).json({ message: 'Recruiter profile updated successfully' });
