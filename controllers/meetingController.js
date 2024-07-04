@@ -5,11 +5,21 @@ const getMeetingsByMentorId = async (req, res) => {
     const mentorId = req.params.mentorId;
 
     try {
-        // Execute raw SQL query
+        // Execute SQL query with JOIN to get student names
         const query = `
-            SELECT Mentor_ID, Student_ID, Date, Duration 
-            FROM bookingmeetings 
-            WHERE Mentor_ID = ?
+            SELECT 
+                bm.Date, 
+                bm.Duration,
+                au.first_name,
+                au.last_name
+            FROM 
+                bookingmeetings AS bm
+            JOIN 
+                AppUser AS au
+            ON 
+                bm.Student_ID = au.National_ID
+            WHERE 
+                bm.Mentor_ID = ?
         `;
         
         const [meetings] = await db.query(query, [mentorId]);
@@ -17,10 +27,9 @@ const getMeetingsByMentorId = async (req, res) => {
         // Check if meetings array is not empty
         if (meetings.length > 0) {
             const formattedMeetings = meetings.map(meeting => ({
-                Mentor_ID: meeting.Mentor_ID,
-                Student_ID: meeting.Student_ID,
+                Student_Name: `${meeting.first_name} ${meeting.last_name}`,
                 Date: meeting.Date,
-                Duration: meeting.Duration
+                Time: meeting.Duration,
             }));
 
             res.status(200).json(formattedMeetings);

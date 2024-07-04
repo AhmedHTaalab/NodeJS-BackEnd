@@ -54,9 +54,9 @@ const updateScheduledNationalId = async (Student_ID, Mentor_ID) => {
             'UPDATE Student SET ScheduleNational_ID = ? WHERE National_ID = ?',
             [Mentor_ID, Student_ID]
         );
-        return result.affectedRows;
+        return result.affectedRows > 0; // Check if update was successful
     } catch (error) {
-        console.error('Error updating schedulednationid:', error);
+        console.error('Error updating scheduled mentor ID:', error);
         throw error;
     }
 };

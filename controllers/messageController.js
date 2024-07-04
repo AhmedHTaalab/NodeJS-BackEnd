@@ -51,11 +51,6 @@ const getConversation = async (req, res) => {
             return res.status(400).json({ error: 'Sender or receiver not found' });
         }
 
-        if (sender.AreaOfInterest !== receiver.AreaOfInterest) {
-            console.error('Sender and receiver are not in the same track');
-            return res.status(400).json({ error: 'Sender and receiver must be in the same track' });
-        }
-
         const messages = await messageModel.getMessages(sender_id, receiver_id, sender.AreaOfInterest);
 
         res.status(200).json(messages);

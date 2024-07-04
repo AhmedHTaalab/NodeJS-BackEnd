@@ -219,26 +219,50 @@ app.use('/student', studentRoutes);
 
 const io = socketIo(server);
 
+
 io.on('connection', (socket) => {
     console.log('New client connected');
 
-    // Listen for join room event
-    socket.on('joinRoom', async (track) => {
-        socket.join(track);
-        const messages = await groupMessageModel.getGroupMessages(track);
+    socket.on('joinRoom', async ({ sender_id, receiver_id }) => {
+        const room = [sender_id, receiver_id].sort().join('_');
+        socket.join(room);
+        const messages = await messageModel.getMessages(sender_id, receiver_id);
         socket.emit('initialMessages', messages);
     });
 
-    // Listen for new message event
     socket.on('sendMessage', async (message) => {
-        await groupMessageModel.createGroupMessage(message);
-        io.to(message.track).emit('receiveMessage', message);
+        const room = [message.sender_id, message.receiver_id].sort().join('_');
+        await messageModel.createMessage(message);
+        io.to(room).emit('receiveMessage', message);
     });
 
     socket.on('disconnect', () => {
         console.log('Client disconnected');
     });
 });
+
+// io.on('connection', (socket) => {
+//     console.log('New client connected');
+
+//     // Listen for join room event
+//     socket.on('joinRoom', async (track) => {
+//         socket.join(track);
+//         const messages = await groupMessageModel.getGroupMessages(track);
+//         socket.emit('initialMessages', messages);
+//     });
+
+//     // Listen for new message event
+//     socket.on('sendMessage', async (message) => {
+//         await groupMessageModel.createGroupMessage(message);
+//         io.to(message.track).emit('receiveMessage', message);
+//     });
+
+//     socket.on('disconnect', () => {
+//         console.log('Client disconnected');
+//     });
+// });
+
+
 
 // wss.on('connection', (ws) => {
 //     ws.on('message', async (message) => {
