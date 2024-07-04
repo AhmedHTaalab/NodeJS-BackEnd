@@ -38,11 +38,26 @@ const deleteInternship = async (InternID) => {
     return result.affectedRows;
 };
 
+const searchInternshipsByTitleAndRecruiter = async (title, national_id) => {
+    const [rows] = await db.query(
+        'SELECT * FROM internships WHERE InternTitle LIKE ? AND National_ID = ?',
+        [`%${title}%`, national_id]
+    );
+    return rows;
+};
+
+const getAllInternshipsByRecruiter = async (nationalId) => {
+    const [rows] = await db.query('SELECT * FROM internships WHERE National_ID = ?', [nationalId]);
+    return rows;
+};
+
 module.exports = {
     createInternship,
     getAllInternships,
     findInternshipByID,
     getInternshipsByRecruiter,
     updateInternship,
-    deleteInternship
+    deleteInternship,
+    searchInternshipsByTitleAndRecruiter,
+    getAllInternshipsByRecruiter,
 };

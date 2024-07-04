@@ -62,9 +62,33 @@ const deleteInternshipReruiter = async (req, res) => {
     }
 };
 
+const searchInternshipsByTitle = async (req, res) => {
+    try {
+        const { title, national_id } = req.query;
+
+        if (!national_id) {
+            return res.status(400).json({ error: 'National ID is required' });
+        }
+
+        let internships;
+        if (!title) {
+            internships = await internshipModel.getAllInternshipsByRecruiter(national_id);
+        } else {
+            internships = await internshipModel.searchInternshipsByTitleAndRecruiter(title, national_id);
+        }
+
+        res.json(internships);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
 
 module.exports = {
     getInternshipByID,
     deleteInternship,
-    deleteInternshipReruiter
+    deleteInternshipReruiter,
+    searchInternshipsByTitle
 };
