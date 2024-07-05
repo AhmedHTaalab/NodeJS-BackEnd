@@ -148,10 +148,34 @@ const updateExperience = async (National_ID, experience) => {
     return result;
 };
 
+const deleteExperience = async (National_ID, experience) => {
+    const [result] = await db.query(
+        'DELETE FROM mentor_experience WHERE National_ID = ? AND Experience = ?',
+        [National_ID, experience]
+    );
+    return result;
+};
+
+
 const getMentorExperiences = async (National_ID) => {
     const [experiences] = await db.query('SELECT * FROM mentor_experience WHERE National_ID = ?', [National_ID]);
     return experiences;
 };
+
+
+const getTrackById = async (nationalId) => {
+    const [rows] = await db.query('SELECT AreaOfInterest FROM Mentor WHERE National_ID = ?', [nationalId]);
+    return rows[0];
+};
+
+const updateTrack = async (nationalId, areaOfInterest) => {
+    const [result] = await db.query(
+        'UPDATE Mentor SET AreaOfInterest = ? WHERE National_ID = ?',
+        [areaOfInterest, nationalId]
+    );
+    return result;
+};
+
 
 module.exports = {
     createMentor,
@@ -160,5 +184,8 @@ module.exports = {
     findUserByNationalID,
     searchMentors,
     updateExperience,
-    getMentorExperiences
+    getMentorExperiences,
+    getTrackById,
+    updateTrack,
+    deleteExperience,
 };

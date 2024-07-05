@@ -28,6 +28,24 @@ const searchInternships = async (req, res) => {
     }
 };
 
+const getAllInternships = async (req, res) => {
+    console.log('Controller: getAllInternships called...');
+    try {
+        console.log('Controller: Calling internshipModel.getAllInternships()...');
+        const internships = await internshipModel.getAllInternships();
+        console.log('Controller: internships received:', internships);
+        if (internships.length === 0) {
+            console.log('Controller: No internships found');
+            return res.status(404).json({ error: 'Internship not found' });
+        }
+        res.status(200).json(internships);
+    } catch (error) {
+        console.error('Controller: Error fetching internships:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 module.exports = {
     searchInternships,
+    getAllInternships,
 };

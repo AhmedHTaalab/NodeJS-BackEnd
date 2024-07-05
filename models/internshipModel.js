@@ -9,9 +9,31 @@ const createInternship = async (internship) => {
 };
 
 const getAllInternships = async () => {
-    const [rows] = await db.query('SELECT * FROM internships');
-    return rows;
+    console.log('Executing getAllInternships query...');
+    try {
+        const [rows] = await db.query('SELECT * FROM internships');
+        console.log('Query executed successfully:', rows);
+        if (rows.length === 0) {
+            console.log('No internships found in the database.');
+        }
+        return rows;
+    } catch (error) {
+        console.error('Error executing query:', error);
+        throw error;
+    }
 };
+
+// const getAllInternships = async () => {
+//     console.log('Executing getAllInternships query...');
+//     try {
+//         const [rows] = await db.query('SELECT * FROM internships');
+//         console.log('Query executed successfully:', rows);
+//         return rows;
+//     } catch (error) {
+//         console.error('Error executing query:', error);
+//         throw error;
+//     }
+// };
 
 const findInternshipByID = async (InternID) => {
     const [rows] = await db.query('SELECT * FROM internships WHERE InternID = ?', [InternID]);

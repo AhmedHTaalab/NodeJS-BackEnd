@@ -155,8 +155,77 @@ const getMentorExperiences = async (req, res) => {
     }
 };
 
+const updateAreaOfInterest = async (req, res) => {
+    const { nationalID, areaOfInterest, action } = req.body;
+
+    console.log('Request received:', { nationalID, areaOfInterest, action }); // Debug log
+
+    try {
+        let newAreaOfInterest;
+        const currentAreaOfInterestData = await mentorModel.getTrackById(nationalID);
+        const currentAreaOfInterest = currentAreaOfInterestData.AreaOfInterest ? currentAreaOfInterestData.AreaOfInterest.split(', ') : [];
+
+        if (action === 'update' || action === 'delete') {
+            // Overwrite the area of interest list with the new one
+            newAreaOfInterest = areaOfInterest.join(', ');
+        } else if (action === 'insert') {
+            newAreaOfInterest = [...currentAreaOfInterest, ...areaOfInterest].filter((interest, index, self) => self.indexOf(interest) === index).join(', ');
+        } else {
+            return res.status(400).json({ error: 'Invalid action' });
+        }
+
+        console.log('Updating area of interest to:', newAreaOfInterest); // Debug log
+
+        const result = await mentorModel.updateTrack(nationalID, newAreaOfInterest);
+
+        if (result.affectedRows > 0) {
+            res.status(200).json({ message: 'Area of interest updated successfully' });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        console.error('Error updating area of interest:', error); // Debug log
+        res.status(500).json({ error: 'Failed to update area of interest' });
+    }
+};
+
+
+const editExperience = async (req, res) => {
+    const { National_ID, experience } = req.body;
+    try {
+        const result = await mentorModel.updateExperience(National_ID, experience);
+        if (result.affectedRows > 0) {
+            res.status(200).json({ message: 'Experience updated successfully' });
+        } else {
+            res.status(400).json({ message: 'Failed to update experience' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
+const deleteExperience = async (req, res) => {
+    const { National_ID, experience } = req.body;
+    try {
+        const result = await mentorModel.deleteExperience(National_ID, experience);
+        if (result.affectedRows > 0) {
+            res.status(200).json({ message: 'Experience deleted successfully' });
+        } else {
+            res.status(400).json({ message: 'Failed to delete experience' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+
 module.exports = {
     searchMentors,
     addMentorExperience,
-    getMentorExperiences
+    getMentorExperiences,
+    updateAreaOfInterest,
+    editExperience,
+    deleteExperience,
+
 };

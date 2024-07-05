@@ -24,6 +24,7 @@ const findRoleByNationalID = async (nationalID) => {
     const studentQuery = 'SELECT * FROM Student WHERE National_ID = ?';
     const mentorQuery = 'SELECT * FROM Mentor WHERE National_ID = ?';
     const recruiterQuery = 'SELECT * FROM Recruiter WHERE National_ID = ?';
+    const adminQuery = 'SELECT * FROM admin WHERE National_ID = ?';
 
     const [studentRows] = await db.query(studentQuery, [nationalID]);
     if (studentRows.length > 0) return 'student';
@@ -34,8 +35,12 @@ const findRoleByNationalID = async (nationalID) => {
     const [recruiterRows] = await db.query(recruiterQuery, [nationalID]);
     if (recruiterRows.length > 0) return 'recruiter';
 
+    const [adminRows] = await db.query(adminQuery, [nationalID]);
+    if (adminRows.length > 0) return 'admin';
+
     return null;
 };
+
 
 const updateUserProfile = async (user) => {
     const [result] = await db.query(

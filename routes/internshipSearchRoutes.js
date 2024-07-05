@@ -1,7 +1,8 @@
 const express = require('express');
-const { searchInternships } = require('../controllers/internshipSearchController');
+const { searchInternships, getAllInternships } = require('../controllers/internshipSearchController');
 const router = express.Router();
 
 router.get('/search', searchInternships);
+router.get('/all', getAllInternships);
 
 module.exports = router;

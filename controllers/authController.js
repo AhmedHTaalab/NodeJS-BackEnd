@@ -63,6 +63,7 @@ const userModel = require('../models/userModel');
 const mentorModel = require('../models/mentorModel');
 const studentModel = require('../models/studentModel');
 const recruiterModel = require('../models/recruiterModel');
+const adminModel = require('../models/adminModel');
 const { sendVerificationEmail } = require('../services/emailService'); // Import the email service
 
 exports.register = async (req, res) => {
@@ -107,6 +108,31 @@ exports.register = async (req, res) => {
         res.status(400).json({ error: error.message });
     }
 };
+
+// exports.login = async (req, res) => {
+//     const { Email, Password } = req.body;
+//     try {
+//         const user = await userModel.findUserByEmail(Email);
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+//         const isMatch = await bcrypt.compare(Password, user.Password);
+
+//         if (!isMatch) {
+//             return res.status(400).json({ message: 'Invalid credentials' });
+//         }
+
+//         const role = await userModel.findRoleByNationalID(user.National_ID);
+//         if (!role) {
+//             return res.status(404).json({ message: 'Role not found' });
+//         }
+
+//         const token = jwt.sign({ National_ID: user.National_ID, role: role }, 'your_jwt_secret', { expiresIn: '1h' });
+//         res.status(200).json({ message: 'Login successful', token, National_ID: user.National_ID, role: role });
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// };
 
 exports.login = async (req, res) => {
     const { Email, Password } = req.body;
@@ -553,8 +579,51 @@ exports.updateStudentProfile = async (req, res) => {
 //     }
 // };
 
+// exports.updateMentorProfile = async (req, res) => {
+//     const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, ...additionalData } = req.body;
+//     try {
+//         const user = await userModel.findUserByNationalID(National_ID);
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         // Encrypt the password if it is being changed
+//         const newPassword = Password && Password !== user.Password
+//             ? await bcrypt.hash(Password, 10)
+//             : user.Password;
+
+//         // Merge current user data with the new data
+//         const updatedUser = {
+//             National_ID: National_ID || user.National_ID,
+//             DoB: DoB || user.DoB,
+//             Email: Email || user.Email,
+//             Password: newPassword,
+//             PhoneNumber: PhoneNumber || user.PhoneNumber,
+//             Gender: Gender || user.Gender,
+//             first_name: first_name || user.first_name,
+//             last_name: last_name || user.last_name
+//         };
+
+//         const result = await userModel.updateUserProfile(updatedUser);
+
+//         if (Object.keys(additionalData).length > 0) {
+//             const mentor = { National_ID, ...additionalData };
+//             await mentorModel.updateMentor(mentor);
+//         }
+
+//         if (result) {
+//             res.status(200).json({ message: 'Mentor profile updated successfully' });
+//         } else {
+//             res.status(400).json({ message: 'Failed to update mentor profile' });
+//         }
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// };
+
 exports.updateMentorProfile = async (req, res) => {
-    const { National_ID, DoB, Email, Password, PhoneNumber, Gender, first_name, last_name, ...additionalData } = req.body;
+    const { National_ID, Password, AreaOfInterest, ...updateData } = req.body;
+
     try {
         const user = await userModel.findUserByNationalID(National_ID);
         if (!user) {
@@ -562,28 +631,32 @@ exports.updateMentorProfile = async (req, res) => {
         }
 
         // Encrypt the password if it is being changed
-        const newPassword = Password && Password !== user.Password
-            ? await bcrypt.hash(Password, 10)
-            : user.Password;
+        if (Password && Password !== user.Password) {
+            updateData.Password = await bcrypt.hash(Password, 10);
+        } else {
+            delete updateData.Password; // Ensure the existing password remains unchanged if it's not being updated
+        }
 
-        // Merge current user data with the new data
-        const updatedUser = {
-            National_ID: National_ID || user.National_ID,
-            DoB: DoB || user.DoB,
-            Email: Email || user.Email,
-            Password: newPassword,
-            PhoneNumber: PhoneNumber || user.PhoneNumber,
-            Gender: Gender || user.Gender,
-            first_name: first_name || user.first_name,
-            last_name: last_name || user.last_name
-        };
+        const updatedUser = { ...user, ...updateData };
 
+        // Update the user profile
         const result = await userModel.updateUserProfile(updatedUser);
 
-        if (Object.keys(additionalData).length > 0) {
-            const mentor = { National_ID, ...additionalData };
-            await mentorModel.updateMentor(mentor);
+        // Retrieve current mentor data
+        const mentor = await mentorModel.findUserByNationalID(National_ID);
+        if (!mentor) {
+            return res.status(404).json({ message: 'Mentor not found' });
         }
+
+        // Preserve existing AreaOfInterest if not included in the request body
+        const updatedMentor = {
+            ...mentor,
+            ...(AreaOfInterest !== undefined && { AreaOfInterest }),
+            ...updateData
+        };
+
+        // Update mentor information
+        await mentorModel.updateMentor(updatedMentor);
 
         if (result) {
             res.status(200).json({ message: 'Mentor profile updated successfully' });
@@ -670,5 +743,41 @@ exports.updateRecruiterProfile = async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+};
+
+
+exports.registerAdmin = async (req, res) => {
+    const { National_ID, Email, Password } = req.body;
+    console.log('Register Admin Request:', { National_ID, Email, Password });
+
+    if (!National_ID || !Email || !Password) {
+        return res.status(400).json({ error: 'National_ID, Email, and Password are required' });
+    }
+
+    try {
+        const hashedPassword = await bcrypt.hash(Password, 10);
+
+        await userModel.createUser({
+            National_ID,
+            DoB: null, // Assuming DoB is not required for admin
+            Email,
+            Password: hashedPassword,
+            PhoneNumber: null, // Assuming PhoneNumber is not required for admin
+            Gender: null, // Assuming Gender is not required for admin
+            first_name: null, // Assuming first_name is not required for admin
+            last_name: null // Assuming last_name is not required for admin
+        });
+
+        await adminModel.createAdmin({ National_ID });
+
+        const verificationToken = jwt.sign({ Email }, 'your_jwt_secret', { expiresIn: '1d' });
+        console.log('Sending verification email to:', Email);
+        sendVerificationEmail(Email, verificationToken);
+
+        res.status(201).json({ message: 'Admin registered successfully. Verification email sent.' });
+    } catch (error) {
+        console.error('Error during admin registration:', error);
+        res.status(400).json({ error: error.message });
     }
 };

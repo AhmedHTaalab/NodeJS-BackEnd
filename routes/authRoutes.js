@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, updateProfile, getUserData, getAllMentors , updateSkills,registerRecruiter, registerStudent, registerMentor, updateStudentProfile, updateMentorProfile, updateRecruiterProfile, updateAreaOfInterest } = require('../controllers/authController');
+const { register, login, updateProfile, getUserData, getAllMentors , updateSkills,registerRecruiter, registerStudent, registerMentor, updateStudentProfile, updateMentorProfile, updateRecruiterProfile, updateAreaOfInterest,registerAdmin } = require('../controllers/authController');
 // const authMiddleware = require('../middleware/authMiddleware'); // Import the middleware
 
 const router = express.Router();
@@ -17,6 +17,6 @@ router.put('/updateStudentProfile', updateStudentProfile);
 router.put('/updateMentorProfile', updateMentorProfile);
 router.put('/updateRecruiterProfile', updateRecruiterProfile);
 router.put('/updateTrack', updateAreaOfInterest);
-
+router.post('/register/admin', registerAdmin);
 
 module.exports = router;
