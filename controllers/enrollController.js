@@ -51,9 +51,39 @@ const getEnrolledStudentsCount = async (req, res) => {
     }
 };
 
+const checkEnrollment = async (req, res) => {
+    const { Student_ID, Mentor_ID } = req.body;
+
+    try {
+        const isEnrolled = await enrollModel.checkEnrollment(Student_ID, Mentor_ID);
+        if (isEnrolled) {
+            res.status(200).send({ enrolled: "Enrolled" });
+        } else {
+            res.status(404).send({ enrolled: "Not Enrolled"});
+        }
+    } catch (error) {
+        res.status(500).send({ error: 'Failed to check enrollment status', details: error.message });
+    }
+};
+
+const getMentorRating = async (req, res) => {
+    const { Mentor_ID } = req.params;
+
+    try {
+        const rating = await enrollModel.getMentorRating(Mentor_ID);
+        res.status(200).json({ mentor_id: Mentor_ID, mentor_rating: rating });
+    } catch (error) {
+        console.error('Error fetching mentor rating:', error);
+        res.status(500).json({ error: 'Error fetching mentor rating' });
+    }
+};
+
 module.exports = {
     enrollStudent,
     updateRating,
     getStudentsForMentor,
     getEnrolledStudentsCount,
+    checkEnrollment,
+    getMentorRating,
+
 };

@@ -181,6 +181,7 @@ const userPdfRoutes = require('./routes/userPdfRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const meetingRoutes = require('./routes/meetingRoutes')
 const studentRoutes = require('./routes/studentRoutes');
+const mentorMessageRoutes = require('./routes/mentorMessageRoutes.js');
 
 
 const socketIo = require('socket.io');
@@ -214,6 +215,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/auth', bookingRoutes);
 app.use('/auth', meetingRoutes);
 app.use('/student', studentRoutes);
+app.use('/mentorMessages', mentorMessageRoutes);
 
 
 

@@ -83,46 +83,58 @@
 const db = require('../config/db');
 const mentorModel = require('../models/mentorModel');
 
+// const searchMentors = async (req, res) => {
+//     const { JobTitle, AreaOfInterest, Company, first_name } = req.query;
+//     console.log(`Received search request with criteria:`, req.query);
+
+//     try {
+//         // Build the SQL query
+//         let sql = `
+//             SELECT m.National_ID, u.first_name, u.last_name, m.JobTitle, m.Company, m.AreaOfInterest, m.No_of_Students, m.Price 
+//             FROM Mentor AS m
+//             JOIN AppUser AS u ON m.National_ID = u.National_ID
+//             WHERE 1=1
+//         `;
+//         const params = [];
+
+//         // Add conditions based on provided query parameters
+//         if (JobTitle) {
+//             sql += ' AND m.JobTitle LIKE ?';
+//             params.push(`%${JobTitle}%`);
+//         }
+//         if (AreaOfInterest) {
+//             sql += ' AND m.AreaOfInterest LIKE ?';
+//             params.push(`%${AreaOfInterest}%`);
+//         }
+//         if (Company) {
+//             sql += ' AND m.Company LIKE ?';
+//             params.push(`%${Company}%`);
+//         }
+//         if (first_name) {
+//             sql += ' AND u.first_name LIKE ?';
+//             params.push(`%${first_name}%`);
+//         }
+
+//         // Execute the query
+//         const [mentors] = await db.query(sql, params);
+//         console.log('Filtered Mentors:', mentors);
+        
+//         res.status(200).json(mentors);
+//     } catch (error) {
+//         console.error('Error in searchMentors:', error);
+//         res.status(500).json({ error: error.message });
+//     }
+// };
+
 const searchMentors = async (req, res) => {
-    const { JobTitle, AreaOfInterest, Company, first_name } = req.query;
-    console.log(`Received search request with criteria:`, req.query);
+    const { JobTitle, AreaOfInterest } = req.query;
 
     try {
-        // Build the SQL query
-        let sql = `
-            SELECT m.National_ID, u.first_name, u.last_name, m.JobTitle, m.Company, m.AreaOfInterest, m.No_of_Students, m.Price 
-            FROM Mentor AS m
-            JOIN AppUser AS u ON m.National_ID = u.National_ID
-            WHERE 1=1
-        `;
-        const params = [];
-
-        // Add conditions based on provided query parameters
-        if (JobTitle) {
-            sql += ' AND m.JobTitle LIKE ?';
-            params.push(`%${JobTitle}%`);
-        }
-        if (AreaOfInterest) {
-            sql += ' AND m.AreaOfInterest LIKE ?';
-            params.push(`%${AreaOfInterest}%`);
-        }
-        if (Company) {
-            sql += ' AND m.Company LIKE ?';
-            params.push(`%${Company}%`);
-        }
-        if (first_name) {
-            sql += ' AND u.first_name LIKE ?';
-            params.push(`%${first_name}%`);
-        }
-
-        // Execute the query
-        const [mentors] = await db.query(sql, params);
-        console.log('Filtered Mentors:', mentors);
-        
+        const mentors = await mentorModel.searchMentors({ JobTitle, AreaOfInterest });
         res.status(200).json(mentors);
     } catch (error) {
         console.error('Error in searchMentors:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 };
 

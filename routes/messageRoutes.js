@@ -6,3 +6,4 @@ router.post('/send', messageController.sendMessage);
 router.get('/conversation/:sender_id/:receiver_id', messageController.getConversation);
 
 module.exports = router;
+
