@@ -80,8 +80,7 @@
 // };
 
 
-const db = require('../config/db');
-const mentorModel = require('../models/mentorModel');
+
 
 // const searchMentors = async (req, res) => {
 //     const { JobTitle, AreaOfInterest, Company, first_name } = req.query;
@@ -125,6 +124,12 @@ const mentorModel = require('../models/mentorModel');
 //         res.status(500).json({ error: error.message });
 //     }
 // };
+
+
+const db = require('../config/db');
+const mentorModel = require('../models/mentorModel');
+const bookingModel = require('../models/bookingModel')
+
 
 const searchMentors = async (req, res) => {
     const { JobTitle, AreaOfInterest } = req.query;
@@ -231,6 +236,21 @@ const deleteExperience = async (req, res) => {
     }
 };
 
+const deleteMentor = async (req, res) => {
+    const mentorId = req.params.mentorId;
+    try {
+        // First, delete related rows in bookingmeetings table
+        await bookingModel.deleteByMentorId(mentorId);
+
+        // Then, delete the mentor
+        await mentorModel.deleteMentorById(mentorId);
+        
+        res.status(200).json({ message: 'Mentor deleted successfully.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to delete mentor', details: error.message });
+    }
+};
 
 module.exports = {
     searchMentors,
@@ -239,5 +259,6 @@ module.exports = {
     updateAreaOfInterest,
     editExperience,
     deleteExperience,
+    deleteMentor,
 
 };

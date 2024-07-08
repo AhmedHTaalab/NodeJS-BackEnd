@@ -1,7 +1,7 @@
 // mentorSearchRoutes.js
 const express = require('express');
 const { searchMentors } = require('../controllers/mentorController');
-const { addMentorExperience, getMentorExperiences, updateAreaOfInterest,editExperience,deleteExperience } = require('../controllers/mentorController');
+const { addMentorExperience, getMentorExperiences, updateAreaOfInterest,editExperience,deleteExperience, deleteMentor } = require('../controllers/mentorController');
 const router = express.Router();
 
 router.get('/search', searchMentors);
@@ -17,5 +17,7 @@ router.post('/edit-experience', editExperience);
 
 // Route to delete experience
 router.delete('/delete-experience', deleteExperience);
+
+router.delete('/delete-mentor/:mentorId', deleteMentor);
 
 module.exports = router;

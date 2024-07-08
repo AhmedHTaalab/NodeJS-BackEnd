@@ -79,7 +79,14 @@ const getBookingsByStudentId = async (studentId) => {
     return rows;
 };
 
+
+const deleteByMentorId = async (mentorId) => {
+    const query = 'DELETE FROM bookingmeetings WHERE Mentor_ID = ?';
+    await db.execute(query, [mentorId]);
+};
+
 module.exports = {
     createBooking,
     getBookingsByStudentId,
+    deleteByMentorId,
 };

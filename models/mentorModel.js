@@ -177,6 +177,38 @@ const updateTrack = async (nationalId, areaOfInterest) => {
 };
 
 
+const deleteMentorById = async (mentorId) => {
+    let connection;
+    try {
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // Delete from Enroll table where Mentor_ID is the mentor being deleted
+        await connection.query('DELETE FROM Enroll WHERE Mentor_ID = ?', [mentorId]);
+
+        // Delete from Ratings table where Mentor_ID is the mentor being deleted
+        await connection.query('DELETE FROM Ratings WHERE Mentor_ID = ?', [mentorId]);
+
+        // Delete from Mentor table
+        const [result] = await connection.query('DELETE FROM Mentor WHERE National_ID = ?', [mentorId]);
+
+        if (result.affectedRows === 0) {
+            throw new Error('Mentor not found');
+        }
+
+        await connection.commit();
+    } catch (error) {
+        if (connection) {
+            await connection.rollback();
+        }
+        throw error;
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+};
+
 module.exports = {
     createMentor,
     updateMentor,
@@ -188,4 +220,5 @@ module.exports = {
     getTrackById,
     updateTrack,
     deleteExperience,
+    deleteMentorById,
 };
